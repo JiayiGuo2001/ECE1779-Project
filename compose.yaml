@@ -1,0 +1,36 @@
+services:
+    postgres:
+        image: postgres:latest
+        container_name: ticket_tracker_db
+        environment:
+            POSTGRES_DB: ticket_tracker
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/
+            - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    api:
+        build:
+            context: ./api
+            dockerfile: Dockerfile
+        container_name: ticket_tracker_api
+        environment:
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_NAME: ticket_tracker
+            DB_USER: postgres
+            DB_PASSWORD: postgres
+            PORT: 3000
+        ports:
+            - "3000:3000"
+        depends_on:
+            - postgres
+        volumes:
+            - ./api:/app
+            - /app/node_modules
+
+volumes:
+    postgres_data:
