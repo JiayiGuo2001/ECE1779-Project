@@ -3,6 +3,8 @@ const { Pool } = require("pg");
 
 const app = express();
 app.use(express.json());
+app.use(express.static('web'));
+app.get('/', (req,res)=>res.sendFile(require('path').join(__dirname,'web','index.html')));
 
 const PORT = process.env.PORT || 3000;
 
