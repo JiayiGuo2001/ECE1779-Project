@@ -2,6 +2,8 @@ const express = require("express");
 const { Pool } = require("pg");
 const app = express();
 const fs = require("fs");
+const bcrypt = require("bcrypt");
+const SALT_ROUNDS = 10;
 
 app.use(express.json());
 app.use(express.static("web"));
@@ -31,31 +33,70 @@ app.get("/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
-// Create a user with username and email
-app.post("/users", async (req, res) => {
-    const { username, email } = req.body || {};
-    if (!username || !email) {
+// REGISTER - Client sends plain password, server hashes it
+app.post("/auth/register", async (req, res) => {
+    const { username, email, password } = req.body || {};
+    if (!username || !email || !password) {
         return res
             .status(400)
-            .json({ error: "username and email are required" });
+            .json({ error: "username, email, and password are required" });
     }
 
     try {
+        // Hash password on server
+        const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+
         const { rows } = await pool.query(
-            `
-            INSERT INTO users(username, email, created_at)
-            VALUES ($1, $2, now())
-            RETURNING id, username, email, created_at
-            `,
-            [username, email],
+            `INSERT INTO users(username, email, password_hash, created_at)
+             VALUES ($1, $2, $3, now())
+             RETURNING id, username, email, created_at`,
+            [username, email, password_hash],
         );
-        res.status(201).json(rows[0]);
+        res.status(201).json({ message: "User created", user: rows[0] });
     } catch (e) {
         if (e.code === "23505") {
             return res
                 .status(409)
                 .json({ error: "username or email already exists" });
         }
+        console.error(e);
+        res.status(500).json({ error: "internal" });
+    }
+});
+
+// LOGIN - Client sends plain password, server verifies hash
+app.post("/auth/login", async (req, res) => {
+    const { username, password } = req.body || {};
+    if (!username || !password) {
+        return res
+            .status(400)
+            .json({ error: "username and password are required" });
+    }
+
+    try {
+        const { rows } = await pool.query(
+            `SELECT id, username, email, password_hash, created_at
+             FROM users WHERE username = $1`,
+            [username],
+        );
+
+        if (!rows.length) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        const user = rows[0];
+        const validPassword = await bcrypt.compare(
+            password,
+            user.password_hash,
+        );
+
+        if (!validPassword) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        const { password_hash, ...userWithoutPassword } = user;
+        res.json({ message: "Login successful", user: userWithoutPassword });
+    } catch (e) {
         console.error(e);
         res.status(500).json({ error: "internal" });
     }
