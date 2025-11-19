@@ -1,10 +1,21 @@
 const express = require("express");
 const { Pool } = require("pg");
-
 const app = express();
+const fs = require("fs");
+
 app.use(express.json());
-app.use(express.static('web'));
-app.get('/', (req,res)=>res.sendFile(require('path').join(__dirname,'web','index.html')));
+app.use(express.static("web"));
+app.get("/", (req, res) =>
+    res.sendFile(require("path").join(__dirname, "web", "index.html")),
+);
+
+function getSecret(secretName) {
+    try {
+        return fs.readFileSync(`/run/secrets/${secretName}`, "utf8").trim();
+    } catch (err) {
+        return process.env[secretName.toUpperCase()] || null;
+    }
+}
 
 const PORT = process.env.PORT || 3000;
 
@@ -12,8 +23,8 @@ const pool = new Pool({
     host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT || 5432,
     database: process.env.DB_NAME || "ticket_tracker",
-    user: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || "postgres",
+    user: getSecret("db_user") || "postgres",
+    password: getSecret("db_password") || "postgres",
 });
 
 app.get("/health", (req, res) => {

@@ -1,7 +1,15 @@
 FROM node:22
+
 WORKDIR /app
-COPY package*.json ./
+
+COPY api/package*.json ./
+
 RUN npm install
-COPY . .
+
+COPY api/*.js ./
+
+COPY web ./web
+
 EXPOSE 3000
+
 CMD [ "npm", "start" ]
