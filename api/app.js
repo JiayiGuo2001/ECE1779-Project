@@ -3,6 +3,7 @@ const { Pool } = require("pg");
 const app = express();
 const fs = require("fs");
 const bcrypt = require("bcrypt");
+const os = require("os");
 const SALT_ROUNDS = 10;
 
 app.use(express.json());
@@ -30,7 +31,7 @@ const pool = new Pool({
 });
 
 app.get("/health", (req, res) => {
-    res.json({ status: "ok" });
+    res.json({ status: "ok", container: os.hostname() });
 });
 
 // REGISTER - Client sends plain password, server hashes it
