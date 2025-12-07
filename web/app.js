@@ -1,11 +1,13 @@
-// --- Config: adapt here if your backend routes differ ---
+// Config
 const API = {
   listEvents: '/events',
   // if your API is /events/:id/prices:
   getPrices: (id) => `/events/${id}/prices`,
   // if your API only offers POST /events and POST /events/prices:
   createEvent: '/events',
-  postPrice: '/events/prices'
+  postPrice: '/events/prices',
+  login: '/auth/login',
+  register: '/auth/register',
 };
 
 async function fetchJSON(url, opts) {
@@ -23,10 +25,14 @@ const ctx = document.getElementById('chart').getContext('2d');
 let chart;
 let currentEventId = null;
 const tracked = new Set(JSON.parse(localStorage.getItem('tracked') || '[]'));
+let currentUser = null;
+
 updateStatus();
+updateAuthUI();
 
 function setTracked(id, on) {
-  if (on) tracked.add(String(id)); else tracked.delete(String(id));
+  if (on) tracked.add(String(id)); 
+  else tracked.delete(String(id));
   localStorage.setItem('tracked', JSON.stringify([...tracked]));
   updateTrackBtn();
   updateStatus();
@@ -36,6 +42,24 @@ function updateStatus() {
   statusEl.textContent = tracked.size
     ? `Tracking ${tracked.size} event(s)`
     : 'Not tracking any event yet';
+}
+
+function updateAuthUI() {
+  const badge = document.getElementById('authStatusBadge');
+  const nameEl = document.getElementById('authUserName');
+  const logoutBtn = document.getElementById('logoutButton');
+
+  if (!badge || !nameEl || !logoutBtn) return; 
+
+  if (currentUser) {
+    badge.textContent = 'Signed in';
+    nameEl.textContent = currentUser.username;
+    logoutBtn.disabled = false;
+  } else {
+    badge.textContent = 'Signed out';
+    nameEl.textContent = 'Not signed in';
+    logoutBtn.disabled = true;
+  }
 }
 
 function updateTrackBtn() {
@@ -115,6 +139,96 @@ async function addSampleTicks(eventId) {
 sel.addEventListener('change', (e) => loadPrices(e.target.value));
 trackBtn.addEventListener('click', () => setTracked(currentEventId, !tracked.has(String(currentEventId))));
 loadBtn.addEventListener('click', () => addSampleTicks(currentEventId));
+
+const loginForm      = document.getElementById('loginForm');
+const loginButton    = document.getElementById('loginButton');
+const loginError     = document.getElementById('loginError');
+const logoutBtn      = document.getElementById('logoutButton');
+
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.textContent = '';
+    loginButton.disabled = true;
+
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+
+    if (!username || !password) {
+      loginError.textContent = 'Please enter username and password.';
+      loginButton.disabled = false;
+      return;
+    }
+
+    try {
+      const data = await fetchJSON(API.login, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      currentUser = data.user || null;
+      updateAuthUI();
+      loginForm.reset();
+    } catch (err) {
+      console.error(err);
+      loginError.textContent = 'Login failed. Check your credentials.';
+    } finally {
+      loginButton.disabled = false;
+    }
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    currentUser = null;
+    updateAuthUI();
+  });
+}
+
+// Register UI wiring
+const registerForm   = document.getElementById('registerForm');
+const registerButton = document.getElementById('registerButton');
+const registerError  = document.getElementById('registerError');
+
+if (registerForm) {
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    registerError.textContent = '';
+    registerButton.disabled = true;
+
+    const username = document.getElementById('registerUsername').value.trim();
+    const email    = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value.trim();
+
+    if (!username || !email || !password) {
+      registerError.textContent = 'Please fill in username, email, and password.';
+      registerButton.disabled = false;
+      return;
+    }
+
+    try {
+      const data = await fetchJSON(API.register, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      // After successful registration, login automatically
+      currentUser = data.user || { username, email };
+      updateAuthUI();
+      registerForm.reset();
+      registerError.textContent = 'Account created. You are signed in.';
+    } catch (err) {
+      console.error(err);
+      // Failed to create account
+      registerError.textContent = 'Failed to create account. Username or email may already exist.';
+    } finally {
+      registerButton.disabled = false;
+    }
+  });
+}
+
 
 // init
 loadEvents().catch(err => {
