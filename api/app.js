@@ -4,6 +4,9 @@ const app = express();
 const fs = require("fs");
 const bcrypt = require("bcrypt");
 const os = require("os");
+const { google } = require("googleapis");
+
+const PORT = process.env.PORT || 3000;
 const SALT_ROUNDS = 10;
 
 app.use(express.json());
@@ -20,7 +23,32 @@ function getSecret(secretName) {
     }
 }
 
-const PORT = process.env.PORT || 3000;
+const oauth2Client = new google.auth.OAuth2(
+    getSecret("gmail_client_id") || process.env.GMAIL_CLIENT_ID,
+    getSecret("gmail_client_secret") || process.env.GMAIL_CLIENT_SECRET,
+);
+
+oauth2Client.setCredentials({
+    refresh_token:
+        getSecret("gmail_refresh_token") || process.env.GMAIL_REFRESH_TOKEN,
+});
+
+const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+
+async function sendEmail(to, subject, body) {
+    const message = [`To: ${to}`, `Subject: ${subject}`, "", body].join("\n");
+
+    const encodedMessage = Buffer.from(message)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+    await gmail.users.messages.send({
+        userId: "me",
+        requestBody: { raw: encodedMessage },
+    });
+}
 
 const pool = new Pool({
     host: process.env.DB_HOST || "localhost",
@@ -29,6 +57,32 @@ const pool = new Pool({
     user: getSecret("db_user") || "postgres",
     password: getSecret("db_password") || "postgres",
 });
+
+async function checkAndNotify(event_id, new_price) {
+    try {
+        // Find users whose threshold is >= new price
+        const { rows } = await pool.query(
+            `SELECT u.email, u.username, e.name as event_name, uei.threshold
+             FROM user_event_interest uei
+             JOIN users u ON u.id = uei.user_id
+             JOIN events e ON e.id = uei.event_id
+             WHERE uei.event_id = $1 AND uei.threshold >= $2`,
+            [event_id, new_price],
+        );
+
+        // Send email to each user
+        for (const user of rows) {
+            await sendEmail(
+                user.email,
+                `Price Alert: ${user.event_name}`,
+                `Hi ${user.username},\n\nThe price for ${user.event_name} dropped to $${new_price}, below your threshold of $${user.threshold}.`,
+            );
+            console.log("Email sent to:", user.email);
+        }
+    } catch (e) {
+        console.error("Notification error:", e);
+    }
+}
 
 app.get("/health", (req, res) => {
     res.json({ status: "ok", container: os.hostname() });
@@ -201,6 +255,9 @@ app.post("/events/prices", async (req, res) => {
             `,
             [event_id, price, observed_at || null],
         );
+
+        checkAndNotify(event_id, price);
+
         res.status(201).json(rows[0]);
     } catch (e) {
         if (e.code == "23503") {

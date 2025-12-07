@@ -32,6 +32,11 @@ services:
         secrets:
             - db_user
             - db_password
+            - email_user
+            - email_password
+            - gmail_client_id
+            - gmail_client_secret
+            - gmail_refresh_token
         deploy:
             replicas: 2
 
@@ -41,8 +46,8 @@ services:
             - "80:80"
             - "443:443"
         volumes:
-            - /opt/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-            - /opt/ssl:/etc/ssl:ro
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./ssl:/etc/ssl:ro
         networks:
             - app_network
 
@@ -54,4 +59,14 @@ secrets:
     db_user:
         external: true
     db_password:
+        external: true
+    email_user:
+        external: true
+    email_password:
+        external: true
+    gmail_client_id:
+        external: true
+    gmail_client_secret:
+        external: true
+    gmail_refresh_token:
         external: true
