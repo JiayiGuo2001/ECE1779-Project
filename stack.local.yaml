@@ -6,17 +6,13 @@ services:
             POSTGRES_USER_FILE: /run/secrets/db_user
             POSTGRES_PASSWORD_FILE: /run/secrets/db_password
         volumes:
-            - /mnt/volume_tor1_01/postgres_data:/var/lib/postgresql
-            - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+            - $HOME/Documents/Schoolwork/MEng/ECE1779/Project/postgres_data:/var/lib/postgresql
+            - $HOME/Documents/Schoolwork/Meng/ECE1779/Project/ECE1779-Project/db/init.sql:/docker-entrypoint-initdb.d/init.sql
         networks:
             - app_network
         secrets:
             - db_user
             - db_password
-        deploy:
-            placement:
-                constraints:
-                    - node.labels.postgres==true
 
     ticket-tracker-app:
         image: ticket-tracker-api:latest
@@ -44,8 +40,8 @@ services:
             - "80:80"
             - "443:443"
         volumes:
-            - /opt/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-            - /opt/ssl:/etc/ssl:ro
+            - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ../ssl:/etc/ssl:ro
         networks:
             - app_network
 
