@@ -8,6 +8,7 @@ const API = {
   postPrice: '/events/prices',
   login: '/auth/login',
   register: '/auth/register',
+  createInterest: '/interests',
 };
 
 async function fetchJSON(url, opts) {
@@ -21,6 +22,8 @@ const trackBtn = document.getElementById('trackBtn');
 const loadBtn  = document.getElementById('loadBtn');
 const statusEl = document.getElementById('status');
 const ctx = document.getElementById('chart').getContext('2d');
+const thresholdInput = document.getElementById('trackThreshold');
+const trackMessage   = document.getElementById('trackMessage');
 
 let chart;
 let currentEventId = null;
@@ -63,11 +66,46 @@ function updateAuthUI() {
 }
 
 function updateTrackBtn() {
-  if (!currentEventId) { trackBtn.disabled = true; return; }
+  if (!currentEventId) {
+    trackBtn.disabled = true;
+    return;
+  }
   trackBtn.disabled = false;
-  const on = tracked.has(String(currentEventId));
-  trackBtn.textContent = on ? 'Untrack' : 'Track';
+  trackBtn.textContent = 'Save alert';
 }
+
+async function createInterestForCurrentUser(threshold) {
+  if (!currentUser) {
+    alert('Please sign in first to receive email alerts.');
+    return false;
+  }
+  if (!currentEventId) {
+    alert('Please select an event first.');
+    return false;
+  }
+
+  try {
+    await fetchJSON(API.createInterest, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        event_id: Number(currentEventId),
+        threshold: Number(threshold),
+      }),
+    });
+    return true;
+  } catch (err) {
+    console.error('createInterest error', err);
+    const msg = String(err.message || '');
+
+    if (msg.includes('already exists') || msg.includes('23505')) {
+      return true;
+    }
+    throw err;
+  }
+}
+
 
 async function ensureAtLeastOneEvent() {
   let events = await fetchJSON(API.listEvents);
@@ -137,7 +175,44 @@ async function addSampleTicks(eventId) {
 
 // --- Wire up UI ---
 sel.addEventListener('change', (e) => loadPrices(e.target.value));
-trackBtn.addEventListener('click', () => setTracked(currentEventId, !tracked.has(String(currentEventId))));
+
+trackBtn.addEventListener('click', async () => {
+  if (!currentEventId) return;
+
+  if (!thresholdInput) {
+    alert('Threshold input not found in UI.');
+    return;
+  }
+
+  if (trackMessage) trackMessage.textContent = '';
+
+  const raw = (thresholdInput.value || '').trim();
+  const threshold = Number(raw);
+
+  if (!raw) {
+    alert('Please enter your alert price.');
+    return;
+  }
+  if (!Number.isFinite(threshold) || threshold <= 0) {
+    alert('Please enter a valid positive number.');
+    return;
+  }
+
+  try {
+    const ok = await createInterestForCurrentUser(threshold);
+    if (!ok) return;
+
+    setTracked(currentEventId, true);
+
+    if (trackMessage) {
+      trackMessage.textContent = `Email alert set at $${threshold.toFixed(2)}.`;
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Failed to save email alert. Please try again.');
+  }
+});
+
 loadBtn.addEventListener('click', () => addSampleTicks(currentEventId));
 
 const loginForm      = document.getElementById('loginForm');

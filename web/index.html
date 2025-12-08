@@ -318,6 +318,20 @@
           <label>Event
             <select id="eventSelect"></select>
           </label>
+
+          <label>Alert when price ≤
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input
+                id="trackThreshold"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="e.g. 150"
+                style="max-width:110px;"
+              />
+              <span style="font-size:12px;color:var(--text-muted);">$</span>
+            </div>
+          </label>
           <button id="trackBtn" class="primary">Track event</button>
           <button id="loadBtn">Load sample data</button>
         </div>
