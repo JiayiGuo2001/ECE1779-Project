@@ -223,6 +223,59 @@ app.get("/events", async (req, res) => {
     }
 });
 
+// Search for an event from ticketmaster
+// Search Ticketmaster for events
+app.get("/events/search", async (req, res) => {
+    if (!TICKETMASTER_API_KEY) {
+        return res
+            .status(500)
+            .json({ error: "TICKETMASTER_API_KEY not configured" });
+    }
+
+    const { keyword, city, size = 20 } = req.query;
+
+    if (!keyword) {
+        return res.status(400).json({ error: "keyword is required" });
+    }
+
+    try {
+        const params = new URLSearchParams({
+            apikey: TICKETMASTER_API_KEY,
+            keyword,
+            size: size.toString(),
+            sort: "date,asc",
+        });
+
+        if (city) params.append("city", city);
+
+        const tmResponse = await fetch(
+            `https://app.ticketmaster.com/discovery/v2/events.json?${params}`,
+        );
+
+        if (!tmResponse.ok) {
+            throw new Error(`Ticketmaster API error: ${tmResponse.status}`);
+        }
+
+        const tmData = await tmResponse.json();
+        const events = tmData._embedded?.events || [];
+
+        const results = events.map((e) => ({
+            external_id: e.id,
+            name: e.name,
+            venue: e._embedded?.venues?.[0]?.name || "TBA",
+            city: e._embedded?.venues?.[0]?.city?.name || "TBA",
+            event_time: e.dates?.start?.dateTime || null,
+            price_min: e.priceRanges?.[0]?.min || null,
+            url: e.url,
+        }));
+
+        res.json(results);
+    } catch (e) {
+        console.error("Search error:", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Get a specific event by id
 app.get("/events/:id", async (req, res) => {
     try {
@@ -323,59 +376,6 @@ app.post("/interests", async (req, res) => {
         }
         console.error(e);
         res.status(500).json({ error: "internal" });
-    }
-});
-
-// Search for an event from ticketmaster
-// Search Ticketmaster for events
-app.get("/events/search", async (req, res) => {
-    if (!TICKETMASTER_API_KEY) {
-        return res
-            .status(500)
-            .json({ error: "TICKETMASTER_API_KEY not configured" });
-    }
-
-    const { keyword, city, size = 20 } = req.query;
-
-    if (!keyword) {
-        return res.status(400).json({ error: "keyword is required" });
-    }
-
-    try {
-        const params = new URLSearchParams({
-            apikey: TICKETMASTER_API_KEY,
-            keyword,
-            size: size.toString(),
-            sort: "date,asc",
-        });
-
-        if (city) params.append("city", city);
-
-        const tmResponse = await fetch(
-            `https://app.ticketmaster.com/discovery/v2/events.json?${params}`,
-        );
-
-        if (!tmResponse.ok) {
-            throw new Error(`Ticketmaster API error: ${tmResponse.status}`);
-        }
-
-        const tmData = await tmResponse.json();
-        const events = tmData._embedded?.events || [];
-
-        const results = events.map((e) => ({
-            external_id: e.id,
-            name: e.name,
-            venue: e._embedded?.venues?.[0]?.name || "TBA",
-            city: e._embedded?.venues?.[0]?.city?.name || "TBA",
-            event_time: e.dates?.start?.dateTime || null,
-            price_min: e.priceRanges?.[0]?.min || null,
-            url: e.url,
-        }));
-
-        res.json(results);
-    } catch (e) {
-        console.error("Search error:", e);
-        res.status(500).json({ error: e.message });
     }
 });
 

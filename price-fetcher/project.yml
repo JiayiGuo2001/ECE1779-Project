@@ -4,7 +4,7 @@ packages:
           - name: trigger
             runtime: nodejs:18
             web: false
-            trigges:
+            triggers:
                 - name: every-15-min
                   sourceType: scheduler
                   sourceDetails:
