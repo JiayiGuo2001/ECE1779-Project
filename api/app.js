@@ -362,6 +362,7 @@ app.post("/interests", async (req, res) => {
             `
             INSERT INTO user_event_interest(user_id, event_id, threshold, created_at)
             VALUES ($1, $2, $3, now())
+            ON CONFLICT (user_id, event_id) DO UPDATE SET threshold = EXCLUDED.threshold
             RETURNING user_id, event_id, threshold, created_at
             `,
             [user_id, event_id, threshold],
@@ -370,9 +371,6 @@ app.post("/interests", async (req, res) => {
     } catch (e) {
         if (e.code === "23503") {
             return res.status(404).json({ error: "user or event not found" });
-        }
-        if (e.code === "23505") {
-            return res.status(409).json({ error: "interest already exists" });
         }
         console.error(e);
         res.status(500).json({ error: "internal" });
