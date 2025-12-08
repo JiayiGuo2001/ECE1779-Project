@@ -15,13 +15,15 @@ async function main(args) {
     try {
         const response = await fetch(`${apiUrl}/admin/fetch-prices`, {
             method: "POST",
-            headers: { "Content=Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             agent: agent,
         });
 
-        const data = await reponse.json();
+        const data = await response.json();
         return { body: { timestamp: new Date().toISOString(), ...data } };
     } catch (e) {
-        return { body: { error: error.message } };
+        return { body: { error: e.message } };
     }
 }
+
+exports.main = main;
