@@ -1,0 +1,13 @@
+packages:
+    - name: ticker
+      functions:
+          - name: trigger
+            runtime: nodejs:18
+            web: false
+            trigges:
+                - name: every-15-min
+                  sourceType: scheduler
+                  sourceDetails:
+                      cron: "*/15 * * * *"
+      environment:
+          API_URL: "${API_URL}"
