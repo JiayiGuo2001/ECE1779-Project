@@ -8,6 +8,7 @@ const { google } = require("googleapis");
 
 const PORT = process.env.PORT || 3000;
 const SALT_ROUNDS = 10;
+const TICKETMASTER_API_KEY = getSecret("ticketmaster_api_key");
 
 app.use(express.json());
 app.use(express.static("web"));
@@ -161,6 +162,7 @@ app.post("/auth/login", async (req, res) => {
 // from name, source, venue, city, event_time
 app.post("/events", async (req, res) => {
     const {
+        external_id,
         name,
         source = "ticketmaster",
         venue,
@@ -177,11 +179,16 @@ app.post("/events", async (req, res) => {
     try {
         const { rows } = await pool.query(
             `
-            INSERT INTO events(name, source, venue, city, event_time)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, name, source, venue, city, event_time
+            INSERT INTO events(external_id, name, source, venue, city, event_time)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (external_id) DO UPDATE SET
+                name = EXCLUDED.name,
+                venue = EXCLUDED.venue,
+                city = EXCLUDED.city,
+                event_time = EXCLUDED.event_time
+            RETURNING id, external_id, name, source, venue, city, event_time
             `,
-            [name, source, venue, city, event_time],
+            [external_id || null, name, source, venue, city, event_time],
         );
         res.status(201).json(rows[0]);
     } catch (e) {
@@ -213,6 +220,59 @@ app.get("/events", async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: "internal" });
+    }
+});
+
+// Search for an event from ticketmaster
+// Search Ticketmaster for events
+app.get("/events/search", async (req, res) => {
+    if (!TICKETMASTER_API_KEY) {
+        return res
+            .status(500)
+            .json({ error: "TICKETMASTER_API_KEY not configured" });
+    }
+
+    const { keyword, city, size = 20 } = req.query;
+
+    if (!keyword) {
+        return res.status(400).json({ error: "keyword is required" });
+    }
+
+    try {
+        const params = new URLSearchParams({
+            apikey: TICKETMASTER_API_KEY,
+            keyword,
+            size: size.toString(),
+            sort: "date,asc",
+        });
+
+        if (city) params.append("city", city);
+
+        const tmResponse = await fetch(
+            `https://app.ticketmaster.com/discovery/v2/events.json?${params}`,
+        );
+
+        if (!tmResponse.ok) {
+            throw new Error(`Ticketmaster API error: ${tmResponse.status}`);
+        }
+
+        const tmData = await tmResponse.json();
+        const events = tmData._embedded?.events || [];
+
+        const results = events.map((e) => ({
+            external_id: e.id,
+            name: e.name,
+            venue: e._embedded?.venues?.[0]?.name || "TBA",
+            city: e._embedded?.venues?.[0]?.city?.name || "TBA",
+            event_time: e.dates?.start?.dateTime || null,
+            price_min: e.priceRanges?.[0]?.min || null,
+            url: e.url,
+        }));
+
+        res.json(results);
+    } catch (e) {
+        console.error("Search error:", e);
+        res.status(500).json({ error: e.message });
     }
 });
 
@@ -316,6 +376,71 @@ app.post("/interests", async (req, res) => {
         }
         console.error(e);
         res.status(500).json({ error: "internal" });
+    }
+});
+
+// Fetch latest prices for all tracked events
+app.post("/admin/fetch-prices", async (req, res) => {
+    if (!TICKETMASTER_API_KEY) {
+        return res
+            .status(500)
+            .json({ error: "TICKETMASTER_API_KEY not configured" });
+    }
+
+    try {
+        const { rows: trackedEvents } = await pool.query(`
+            SELECT id, external_id, name
+            FROM events
+            WHERE external_id IS NOT NULL
+              AND event_time > now()
+        `);
+
+        let updated = 0;
+        let failed = 0;
+
+        for (const event of trackedEvents) {
+            try {
+                const tmResponse = await fetch(
+                    `https://app.ticketmaster.com/discovery/v2/events/${event.external_id}.json?apikey=${TICKETMASTER_API_KEY}`,
+                );
+
+                if (!tmResponse.ok) {
+                    failed++;
+                    continue;
+                }
+
+                const tmEvent = await tmResponse.json();
+                const minPrice = tmEvent.priceRanges?.[0]?.min;
+
+                if (minPrice) {
+                    await pool.query(
+                        `
+                        INSERT INTO prices (event_id, price)
+                        VALUES ($1, $2)
+                    `,
+                        [event.id, minPrice],
+                    );
+
+                    checkAndNotify(event.id, minPrice);
+                    updated++;
+                }
+
+                await new Promise((r) => setTimeout(r, 200));
+            } catch (e) {
+                console.error(`Failed to update ${event.name}:`, e.message);
+                failed++;
+            }
+        }
+
+        res.json({
+            success: true,
+            tracked: trackedEvents.length,
+            updated,
+            failed,
+        });
+    } catch (e) {
+        console.error("Price fetch error:", e);
+        res.status(500).json({ error: e.message });
     }
 });
 
