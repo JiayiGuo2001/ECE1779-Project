@@ -341,8 +341,7 @@ At this point the server is also accessible using curl.
 ## 7.0 Deployment Information
 During grading, the deployed application is available at:
 
-- **HTTPS:** `https://167.99.187.11/`  
-
+- Application link: https://167.99.187.11/
 
 ## 8.0 Video Demo
 
