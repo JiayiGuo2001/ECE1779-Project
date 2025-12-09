@@ -17,6 +17,7 @@ Prepared by:
 ## 5.0 User Guide
 
 ## 6.0 Development Guide
+**Credentials sent to TA**
 This section provides detailed instructions for setting up the development environment, database, and local testing using Docker Swarm
 
 Please note that since the cron-triggered function uses Digital Ocean Function, the functinoality is not available to test locally. 
