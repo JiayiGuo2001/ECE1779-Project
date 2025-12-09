@@ -26,11 +26,10 @@ services:
         secrets:
             - db_user
             - db_password
-            - email_user
-            - email_password
             - gmail_client_id
             - gmail_client_secret
             - gmail_refresh_token
+            - ticketmaster_api_key
         deploy:
             replicas: 2
 
@@ -54,13 +53,11 @@ secrets:
         external: true
     db_password:
         external: true
-    email_user:
-        external: true
-    email_password:
-        external: true
     gmail_client_id:
         external: true
     gmail_client_secret:
         external: true
     gmail_refresh_token:
+        external: true
+    ticketmaster_api_key:
         external: true

@@ -206,6 +206,7 @@ To set a price alert, first select the event you are interested in from the drop
 
 
 ## 6.0 Development Guide
+**Credentials sent to TA**
 This section provides detailed instructions for setting up the development environment, database, and local testing using Docker Swarm
 
 Please note that since the cron-triggered function uses Digital Ocean Function, the functinoality is not available to test locally. 
@@ -263,41 +264,27 @@ events {
 }
 
 http {
-    upstream api_servers {
-        server ticket-tracker-app:3000;
-    }
-
-    # Redirect HTTP to HTTPS
     server {
         listen 80;
-        server_name localhost;
-        return 301 https://$server_name$request_uri;
+        return 301 https://$host$request_uri;
     }
 
-    # HTTPS server
     server {
         listen 443 ssl;
-        server_name localhost;
-
-        ssl_certificate /etc/ssl/cert.pem;
-        ssl_certificate_key /etc/ssl/key.pem;
-
+        
+        ssl_certificate /etc/ssl/server.crt;
+        ssl_certificate_key /etc/ssl/server.key;
         ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers HIGH:!aNULL:!MD5;
 
         location / {
-            proxy_pass http://api_servers;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
+            proxy_pass http://ticket-tracker-app:3000;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_cache_bypass $http_upgrade;
+            proxy_set_header X-Forwarded-Proto https;
         }
     }
 }
+
 EOF
 ```
 

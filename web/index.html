@@ -1,414 +1,645 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Ticket Tracker</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root {
-      --bg: #020617;
-      --bg-elevated: #020617;
-      --border-subtle: rgba(148, 163, 184, 0.35);
-      --accent: #0ea5e9;
-      --accent-soft: rgba(56, 189, 248, 0.14);
-      --text-main: #e5e7eb;
-      --text-muted: #94a3b8;
-      --error: #f97373;
-      --radius-lg: 16px;
-    }
+    <head>
+        <meta charset="utf-8" />
+        <title>Ticket Tracker</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <style>
+            :root {
+                --bg: #020617;
+                --bg-elevated: #020617;
+                --border-subtle: rgba(148, 163, 184, 0.35);
+                --accent: #0ea5e9;
+                --accent-soft: rgba(56, 189, 248, 0.14);
+                --text-main: #e5e7eb;
+                --text-muted: #94a3b8;
+                --error: #f97373;
+                --radius-lg: 16px;
+            }
 
-    * { box-sizing: border-box; }
+            * {
+                box-sizing: border-box;
+            }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      padding: 24px;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: radial-gradient(circle at top left, #1d283a, #020617 55%);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-    }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                padding: 24px;
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    Roboto,
+                    sans-serif;
+                background: radial-gradient(
+                    circle at top left,
+                    #1d283a,
+                    #020617 55%
+                );
+                color: var(--text-main);
+                display: flex;
+                justify-content: center;
+            }
 
-    .page {
-      width: 100%;
-      max-width: 1120px;
-    }
+            .page {
+                width: 100%;
+                max-width: 1120px;
+            }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
+            header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
 
-    .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 12px;
-      background: conic-gradient(from 140deg, #22d3ee, #0ea5e9, #6366f1, #22d3ee);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: white;
-      font-size: 18px;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.6);
-    }
+            .brand-logo {
+                width: 32px;
+                height: 32px;
+                border-radius: 12px;
+                background: conic-gradient(
+                    from 140deg,
+                    #22d3ee,
+                    #0ea5e9,
+                    #6366f1,
+                    #22d3ee
+                );
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                color: white;
+                font-size: 18px;
+                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.6);
+            }
 
-    header h1 {
-      margin: 0;
-      font-size: 22px;
-      letter-spacing: 0.02em;
-    }
+            header h1 {
+                margin: 0;
+                font-size: 22px;
+                letter-spacing: 0.02em;
+            }
 
-    header p {
-      margin: 0;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+            header p {
+                margin: 0;
+                font-size: 13px;
+                color: var(--text-muted);
+            }
 
-    .status-pill {
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      color: var(--text-muted);
-    }
+            .status-pill {
+                font-size: 12px;
+                padding: 4px 10px;
+                border-radius: 999px;
+                border: 1px solid rgba(148, 163, 184, 0.5);
+                color: var(--text-muted);
+            }
 
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(260px, 0.9fr);
-      gap: 20px;
-      align-items: flex-start;
-    }
+            .layout {
+                display: grid;
+                grid-template-columns: minmax(0, 2.1fr) minmax(260px, 0.9fr);
+                gap: 20px;
+                align-items: flex-start;
+            }
 
-    .card {
-      background: rgba(15, 23, 42, 0.95);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-subtle);
-      box-shadow:
-        0 18px 45px rgba(15, 23, 42, 0.75),
-        0 0 0 1px rgba(15, 23, 42, 0.6);
-      padding: 18px 18px 20px;
-      backdrop-filter: blur(18px);
-    }
+            .card {
+                background: rgba(15, 23, 42, 0.95);
+                border-radius: var(--radius-lg);
+                border: 1px solid var(--border-subtle);
+                box-shadow:
+                    0 18px 45px rgba(15, 23, 42, 0.75),
+                    0 0 0 1px rgba(15, 23, 42, 0.6);
+                padding: 18px 18px 20px;
+                backdrop-filter: blur(18px);
+            }
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
 
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-    }
+            .card-title {
+                font-size: 15px;
+                font-weight: 600;
+            }
 
-    .card-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+            .card-subtitle {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
 
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 16px;
-    }
+            .toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+                margin-bottom: 16px;
+            }
 
-    label {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+            label {
+                font-size: 12px;
+                color: var(--text-muted);
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
 
-    select {
-      min-width: 210px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      font-size: 13px;
-      outline: none;
-    }
+            select {
+                min-width: 210px;
+                padding: 8px 10px;
+                border-radius: 999px;
+                border: 1px solid var(--border-subtle);
+                background: rgba(15, 23, 42, 0.9);
+                color: var(--text-main);
+                font-size: 13px;
+                outline: none;
+            }
 
-    button {
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      font-size: 13px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease;
-    }
+            button {
+                padding: 8px 14px;
+                border-radius: 999px;
+                border: 1px solid var(--border-subtle);
+                background: rgba(15, 23, 42, 0.9);
+                color: var(--text-main);
+                font-size: 13px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                transition:
+                    background 0.12s ease,
+                    transform 0.08s ease,
+                    box-shadow 0.12s ease;
+            }
 
-    button.primary {
-      border-color: transparent;
-      background: linear-gradient(135deg, #0ea5e9, #22c55e);
-      color: white;
-      box-shadow: 0 10px 25px rgba(8, 47, 73, 0.8);
-    }
+            button.primary {
+                border-color: transparent;
+                background: linear-gradient(135deg, #0ea5e9, #22c55e);
+                color: white;
+                box-shadow: 0 10px 25px rgba(8, 47, 73, 0.8);
+            }
 
-    button.primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 35px rgba(8, 47, 73, 0.9);
-    }
+            button.primary:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 14px 35px rgba(8, 47, 73, 0.9);
+            }
 
-    button:hover:not(:disabled) {
-      background: rgba(30, 64, 175, 0.45);
-    }
+            button:hover:not(:disabled) {
+                background: rgba(30, 64, 175, 0.45);
+            }
 
-    button:disabled {
-      opacity: 0.55;
-      cursor: default;
-      box-shadow: none;
-    }
+            button:disabled {
+                opacity: 0.55;
+                cursor: default;
+                box-shadow: none;
+            }
 
-    #status {
-      color: var(--text-muted);
-      font-size: 12px;
-      margin-top: 4px;
-    }
+            #status {
+                color: var(--text-muted);
+                font-size: 12px;
+                margin-top: 4px;
+            }
 
-    #chart-wrap {
-      max-width: 100%;
-    }
+            #chart-wrap {
+                max-width: 100%;
+            }
 
-    #chart {
-      width: 100%;
-    }
+            #chart {
+                width: 100%;
+            }
 
-    /* Auth card */
+            /* Auth card */
 
-    #authCard {
-      position: sticky;
-      top: 12px;
-    }
+            #authCard {
+                position: sticky;
+                top: 12px;
+            }
 
-    .auth-badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(56, 189, 248, 0.5);
-      background: var(--accent-soft);
-      color: #7dd3fc;
-    }
+            .auth-badge {
+                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 999px;
+                border: 1px solid rgba(56, 189, 248, 0.5);
+                background: var(--accent-soft);
+                color: #7dd3fc;
+            }
 
-    .auth-meta {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+            .auth-meta {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
 
-    .auth-user {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-main);
-    }
+            .auth-user {
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-main);
+            }
 
-    .auth-form {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+            .auth-form {
+                margin-top: 14px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
 
-    .auth-form-row {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+            .auth-form-row {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
 
-    .auth-form-row span {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
+            .auth-form-row span {
+                font-size: 11px;
+                color: var(--text-muted);
+            }
 
-    .auth-form input {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-main);
-      font-size: 13px;
-      outline: none;
-    }
+            .auth-form input {
+                width: 100%;
+                padding: 8px 10px;
+                border-radius: 999px;
+                border: 1px solid var(--border-subtle);
+                background: rgba(15, 23, 42, 0.95);
+                color: var(--text-main);
+                font-size: 13px;
+                outline: none;
+            }
 
-    .auth-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-top: 6px;
-    }
+            .auth-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 8px;
+                margin-top: 6px;
+            }
 
-    .auth-error {
-      font-size: 11px;
-      color: var(--error);
-      min-height: 14px;
-    }
+            .auth-error {
+                font-size: 11px;
+                color: var(--error);
+                min-height: 14px;
+            }
 
-    .auth-help {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
+            .auth-help {
+                font-size: 11px;
+                color: var(--text-muted);
+                margin-top: 6px;
+            }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      color: var(--text-muted);
-    }
+            .pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 11px;
+                padding: 3px 9px;
+                border-radius: 999px;
+                background: rgba(15, 23, 42, 0.9);
+                border: 1px solid rgba(148, 163, 184, 0.4);
+                color: var(--text-muted);
+            }
 
-    @media (max-width: 880px) {
-      body { padding: 16px; }
-      .layout { grid-template-columns: minmax(0, 1fr); }
-      #authCard { position: static; }
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <header>
-      <div class="brand">
-        <div class="brand-logo">T</div>
-        <div>
-          <h1>Ticket Tracker</h1>
-          <p>Track secondary-market price moves for concerts & games</p>
-        </div>
-      </div>
-      <div class="status-pill" id="status">Initializing…</div>
-    </header>
+            /* Search results */
+            .search-result {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 12px;
+                border-radius: 10px;
+                border: 1px solid var(--border-subtle);
+                margin-bottom: 8px;
+                background: rgba(15, 23, 42, 0.6);
+            }
 
-    <div class="layout">
-      <!-- Main chart + controls -->
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Price history</div>
-            <div class="card-subtitle">Pick an event and stream price updates over time.</div>
-          </div>
-        </div>
+            .search-result:hover {
+                background: rgba(30, 64, 175, 0.2);
+            }
 
-        <div class="toolbar">
-          <label>Event
-            <select id="eventSelect"></select>
-          </label>
+            .search-result-info {
+                flex: 1;
+                min-width: 0;
+            }
 
-          <label>Alert when price ≤
-            <div style="display:flex; align-items:center; gap:6px;">
-              <input
-                id="trackThreshold"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="e.g. 150"
-                style="max-width:110px;"
-              />
-              <span style="font-size:12px;color:var(--text-muted);">$</span>
+            .search-result-name {
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-main);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .search-result-meta {
+                font-size: 11px;
+                color: var(--text-muted);
+                margin-top: 2px;
+            }
+
+            .search-result-price {
+                font-size: 12px;
+                color: var(--accent);
+                margin-right: 12px;
+            }
+
+            @media (max-width: 880px) {
+                body {
+                    padding: 16px;
+                }
+                .layout {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+                #authCard {
+                    position: static;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page">
+            <header>
+                <div class="brand">
+                    <div class="brand-logo">T</div>
+                    <div>
+                        <h1>Ticket Tracker</h1>
+                        <p>
+                            Track secondary-market price moves for concerts &
+                            games
+                        </p>
+                    </div>
+                </div>
+                <div class="status-pill" id="status">Initializing…</div>
+            </header>
+
+            <!-- Search Events Section -->
+            <section class="card" style="margin-bottom: 20px">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Search Events</div>
+                        <div class="card-subtitle">
+                            Find events on Ticketmaster and add them to your
+                            tracker.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <label
+                        >Keyword
+                        <input
+                            id="searchKeyword"
+                            type="text"
+                            placeholder="e.g. Taylor Swift"
+                            style="
+                                min-width: 180px;
+                                padding: 8px 10px;
+                                border-radius: 999px;
+                                border: 1px solid var(--border-subtle);
+                                background: rgba(15, 23, 42, 0.9);
+                                color: var(--text-main);
+                                font-size: 13px;
+                            "
+                        />
+                    </label>
+                    <label
+                        >City (optional)
+                        <input
+                            id="searchCity"
+                            type="text"
+                            placeholder="e.g. Toronto"
+                            style="
+                                min-width: 140px;
+                                padding: 8px 10px;
+                                border-radius: 999px;
+                                border: 1px solid var(--border-subtle);
+                                background: rgba(15, 23, 42, 0.9);
+                                color: var(--text-main);
+                                font-size: 13px;
+                            "
+                        />
+                    </label>
+                    <button
+                        id="searchBtn"
+                        class="primary"
+                        style="align-self: flex-end"
+                    >
+                        Search
+                    </button>
+                </div>
+
+                <div
+                    id="searchResults"
+                    style="
+                        margin-top: 12px;
+                        max-height: 300px;
+                        overflow-y: auto;
+                    "
+                ></div>
+                <div
+                    id="searchStatus"
+                    style="
+                        font-size: 12px;
+                        color: var(--text-muted);
+                        margin-top: 8px;
+                    "
+                ></div>
+            </section>
+
+            <div class="layout">
+                <!-- Main chart + controls -->
+                <section class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Price history</div>
+                            <div class="card-subtitle">
+                                Pick an event and stream price updates over
+                                time.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <label
+                            >Event
+                            <select id="eventSelect"></select>
+                        </label>
+
+                        <label
+                            >Alert when price ≤
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                "
+                            >
+                                <input
+                                    id="trackThreshold"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    placeholder="e.g. 150"
+                                    style="max-width: 110px"
+                                />
+                                <span
+                                    style="
+                                        font-size: 12px;
+                                        color: var(--text-muted);
+                                    "
+                                    >$</span
+                                >
+                            </div>
+                        </label>
+                        <button id="trackBtn" class="primary">
+                            Track event
+                        </button>
+                        <button id="loadBtn">Load sample data</button>
+                    </div>
+
+                    <div id="chart-wrap">
+                        <canvas id="chart" height="360"></canvas>
+                    </div>
+                </section>
+
+                <!-- Auth / login card -->
+                <aside class="card" id="authCard">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Account</div>
+                            <div class="card-subtitle">
+                                Sign in or create an account.
+                            </div>
+                        </div>
+                        <span class="auth-badge" id="authStatusBadge"
+                            >Signed out</span
+                        >
+                    </div>
+
+                    <div class="auth-meta">
+                        <span class="auth-user" id="authUserName"
+                            >Not signed in</span
+                        >
+                    </div>
+
+                    <!-- Login form -->
+                    <form id="loginForm" class="auth-form">
+                        <div class="auth-form-row">
+                            <span>Username</span>
+                            <input
+                                id="loginUsername"
+                                name="username"
+                                autocomplete="username"
+                                required
+                            />
+                        </div>
+                        <div class="auth-form-row">
+                            <span>Password</span>
+                            <input
+                                id="loginPassword"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                            />
+                        </div>
+
+                        <div class="auth-footer">
+                            <button
+                                type="submit"
+                                id="loginButton"
+                                class="primary"
+                            >
+                                Sign in
+                            </button>
+                            <button type="button" id="logoutButton">
+                                Sign out
+                            </button>
+                        </div>
+
+                        <div class="auth-error" id="loginError"></div>
+                    </form>
+
+                    <!----->
+                    <div
+                        class="auth-help"
+                        style="
+                            margin-top: 10px;
+                            border-top: 1px solid rgba(148, 163, 184, 0.35);
+                            padding-top: 10px;
+                        "
+                    >
+                        <div
+                            style="
+                                font-size: 11px;
+                                text-transform: uppercase;
+                                letter-spacing: 0.06em;
+                                color: var(--text-muted);
+                                margin-bottom: 6px;
+                            "
+                        >
+                            New here?
+                        </div>
+                        <div
+                            style="
+                                font-size: 12px;
+                                color: var(--text-muted);
+                                margin-bottom: 6px;
+                            "
+                        >
+                            Create an account in the browser and we will sign in
+                            automatically.
+                        </div>
+
+                        <!-- Register form -->
+                        <form id="registerForm" class="auth-form">
+                            <div class="auth-form-row">
+                                <span>Username</span>
+                                <input
+                                    id="registerUsername"
+                                    name="username"
+                                    autocomplete="off"
+                                    required
+                                />
+                            </div>
+                            <div class="auth-form-row">
+                                <span>Email</span>
+                                <input
+                                    id="registerEmail"
+                                    name="email"
+                                    type="email"
+                                    autocomplete="off"
+                                    required
+                                />
+                            </div>
+                            <div class="auth-form-row">
+                                <span>Password</span>
+                                <input
+                                    id="registerPassword"
+                                    name="password"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    required
+                                />
+                            </div>
+
+                            <div class="auth-footer">
+                                <button type="submit" id="registerButton">
+                                    Create account
+                                </button>
+                            </div>
+
+                            <div class="auth-error" id="registerError"></div>
+                        </form>
+                    </div>
+                </aside>
             </div>
-          </label>
-          <button id="trackBtn" class="primary">Track event</button>
-          <button id="loadBtn">Load sample data</button>
         </div>
 
-        <div id="chart-wrap">
-          <canvas id="chart" height="360"></canvas>
-        </div>
-      </section>
-
-      <!-- Auth / login card -->
-      <aside class="card" id="authCard">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Account</div>
-            <div class="card-subtitle">Sign in or create an account.</div>
-          </div>
-          <span class="auth-badge" id="authStatusBadge">Signed out</span>
-        </div>
-
-        <div class="auth-meta">
-          <span class="auth-user" id="authUserName">Not signed in</span>
-        </div>
-
-        <!-- Login form -->
-        <form id="loginForm" class="auth-form">
-          <div class="auth-form-row">
-            <span>Username</span>
-            <input id="loginUsername" name="username" autocomplete="username" required />
-          </div>
-          <div class="auth-form-row">
-            <span>Password</span>
-            <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
-          </div>
-
-          <div class="auth-footer">
-            <button type="submit" id="loginButton" class="primary">Sign in</button>
-            <button type="button" id="logoutButton">Sign out</button>
-          </div>
-
-          <div class="auth-error" id="loginError"></div>
-        </form>
-
-        <!----->
-        <div class="auth-help" style="margin-top: 10px; border-top: 1px solid rgba(148,163,184,0.35); padding-top: 10px;">
-          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px;">
-            New here?
-          </div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
-            Create an account in the browser and we will sign in automatically.
-          </div>
-
-          <!-- Register form -->
-          <form id="registerForm" class="auth-form">
-            <div class="auth-form-row">
-              <span>Username</span>
-              <input id="registerUsername" name="username" autocomplete="off" required />
-            </div>
-            <div class="auth-form-row">
-              <span>Email</span>
-              <input id="registerEmail" name="email" type="email" autocomplete="off" required />
-            </div>
-            <div class="auth-form-row">
-              <span>Password</span>
-              <input id="registerPassword" name="password" type="password" autocomplete="new-password" required />
-            </div>
-
-            <div class="auth-footer">
-              <button type="submit" id="registerButton">Create account</button>
-            </div>
-
-            <div class="auth-error" id="registerError"></div>
-          </form>
-        </div>
-      </aside>
-
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="/app.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="/app.js"></script>
+    </body>
+</html>
