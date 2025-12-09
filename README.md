@@ -344,8 +344,13 @@ During grading, the deployed application is available at:
 - **HTTPS:** `https://167.99.187.11/`  
 
 
-This URL was used for the autograder and for the final demo video.
-## 8.0 Individual Contributions
+## 8.0 Video Demo
+
+Our video demo walks through the main features of the Ticket Tracker application and shows it running in our DigitalOcean deployment.
+
+- YouTube link: https://youtu.be/HnYqjL6n3CU
+
+## 9.0 Individual Contributions
 ### Jiayi Guo
 
 - Designed and implemented the **database layer**, including the PostgreSQL schema in `db/init.sql` (tables for users, events, prices, and user–event interests), primary/foreign keys, and constraints for data integrity.
@@ -357,6 +362,7 @@ This URL was used for the autograder and for the final demo video.
 - Integrated the **email notification pipeline** using the Gmail API, including OAuth2 setup, sending logic, and wiring it into the price insertion flow so that alerts are triggered when prices fall below user thresholds.
 - Helped configure the backend for containerized deployment (environment variables, database connection handling, and error logging).
 - Added scheduled pulling to fetch prices from the Ticketmaster Discovery v2 API, using existing `events` table contents that have an `external_id` attribute, via a DigitalOcean Function with a cron trigger calling `/admin/fetch-prices` every 15 minutes.
+- Built the **event search workflow** behind the “Search Events” bar, including the backend integration with the Ticketmaster Discovery API, the search endpoint that returns matching events by keyword and optional city, and the logic that inserts selected results into the `events` table so they appear in the price-history dropdown.
 
 ### Wentao Xu
 
@@ -368,7 +374,7 @@ This URL was used for the autograder and for the final demo video.
 - Implemented and tested the **backup and restore scripts** (`backup.sh` and `restore.sh`), and verified that they work correctly with the Docker Compose / Swarm setup to create and restore logical database snapshots.
 - Contributed to project documentation and presentation materials, including the final report structure and explanations of the user-facing features.
 
-## 9.0 Lessons Learned and Concluding
+## 10.0 Lessons Learned and Concluding
 One of the main lessons we learned in this project is the value of starting with a simple, working core and then layering features on top of it. Getting the basic “events + prices + chart” loop running with Docker Compose and PostgreSQL made it much easier to reason about later changes. Once that path was stable, adding user accounts, per-user alerts, and Gmail integration felt more manageable, even when we ran into small bugs and configuration issues.
 
 We also gained a much better understanding of what “stateful cloud-native” really means in practice. It is not just about putting a database in a container, but about making sure the data actually survives restarts and redeployments. Moving from local volumes to a DigitalOcean Volume, and then verifying that our backup and restore scripts worked as expected, showed us how important persistence and recovery are for real applications.
